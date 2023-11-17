@@ -2,7 +2,6 @@ const asyncHandler = require("express-async-handler");
 const LogSchema = require("../Models/log");
 
 const AddLog = asyncHandler(async (req, res, next) => {
-  try {
     const {
       level,
       message,
@@ -13,6 +12,8 @@ const AddLog = asyncHandler(async (req, res, next) => {
       commit,
       metadata,
     } = req.body;
+  try {
+    
 
     if (
       !level ||
@@ -21,7 +22,8 @@ const AddLog = asyncHandler(async (req, res, next) => {
       !timestamp ||
       !traceId ||
       !spanId ||
-      !commit ||
+      !commit 
+      ||
       !metadata
     ) {
       res.status(400);
@@ -42,7 +44,7 @@ const AddLog = asyncHandler(async (req, res, next) => {
     });
 
     res.status(201).json({
-      _id: LogModel._id,
+     
       level: LogModel.level,
       message: LogModel.message,
       resourceId: LogModel.resourceId,
@@ -61,5 +63,27 @@ const AddLog = asyncHandler(async (req, res, next) => {
     return next(new Error("Failed to register"));
   }
 });
+const AllLogs=asyncHandler(async(req,res)=>{
+    const keyword = req.query.search
+      ? {
+          $or: [
+            { level: { $regex: req.query.search, $options: "i" } },
+            { message: { $regex: req.query.search, $options: "i" } },
+            { resourceId: { $regex: req.query.search, $options: "i" } },
+            { timestamp: { $regex: req.query.search, $options: "i" } },
+            { traceId: { $regex: req.query.search, $options: "i" } },
+            { spanId: { $regex: req.query.search, $options: "i" } },
+            { commit: { $regex: req.query.search, $options: "i" } },
+            { metadata: { $regex: req.query.search, $options: "i" } },
+          ],
+        }
+      : {};
 
-module.exports = { AddLog };
+    const users = await LogSchema.find(keyword).find({
+      _id: { $ne: req.user._id },
+    });
+    res.send(users);
+
+})
+
+module.exports = { AddLog, AllLogs };
