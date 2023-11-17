@@ -1,37 +1,44 @@
 const asyncHandler = require("express-async-handler");
 const LogSchema = require("../Models/log");
-const AddLog=asyncHandler(async(req,res)=>{
-  const {
-    level,
-    message,
-    resourceId,
-    traceId,
-    spanId,
-    commit,
-    metadata,
-    parentResourceId,
-  } = req.body;
-  if (!level||
-    !message||
-   ! resourceId||
-    !traceId||
-   ! spanId||
-    !commit||
-    !metadata||
-    !parentResourceId) {
-    res.status(400);
-    return next(new Error("Please enter all the details"));
-  }
+
+const AddLog = asyncHandler(async (req, res, next) => {
   try {
-    const LogModel = await LogSchema.create({
+    const {
       level,
       message,
       resourceId,
+      timestamp,
       traceId,
       spanId,
       commit,
       metadata,
-      parentResourceId,
+    } = req.body;
+
+    if (
+      !level ||
+      !message ||
+      !resourceId ||
+      !timestamp ||
+      !traceId ||
+      !spanId ||
+      !commit ||
+      !metadata
+    ) {
+      res.status(400);
+      return next(new Error("Please enter all the details"));
+    }
+
+    const LogModel = await LogSchema.create({
+      level,
+      message,
+      resourceId,
+      timestamp, // Ensure you have the "timestamp" field in your LogSchema
+      traceId,
+      spanId,
+      commit,
+      metadata: {
+        parentResourceId: metadata.parentResourceId,
+      },
     });
 
     res.status(201).json({
@@ -39,23 +46,20 @@ const AddLog=asyncHandler(async(req,res)=>{
       level: LogModel.level,
       message: LogModel.message,
       resourceId: LogModel.resourceId,
+      timestamp: LogModel.timestamp,
       traceId: LogModel.traceId,
       spanId: LogModel.spanId,
       commit: LogModel.commit,
-      metadata: LogModel.metadata,
-      parentResourceId: LogModel.parentResourceId,
+      metadata: {
+        parentResourceId: LogModel.metadata.parentResourceId,
+      },
     });
-    console.log("Success LogModel registered")
-}
-catch(e)
-{
+
+    console.log("Success LogModel registered");
+  } catch (error) {
     res.status(500);
     return next(new Error("Failed to register"));
-    
-}
-
-}
-
-)
+  }
+});
 
 module.exports = { AddLog };

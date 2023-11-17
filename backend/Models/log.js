@@ -14,6 +14,9 @@ const logSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    timestamp:{
+      type:String,required:true
+    },
     traceId: {
       type: String,
       required: true,
@@ -29,13 +32,18 @@ const logSchema = new mongoose.Schema(
     metadata: {
       parentResourceId: {
         type: String,
-        required: true,
-      },
-    },
-  },
-  {
-    timestamps: true,
+        required: true
+      }
+    }
   }
+  
 );
+async function run() {
+  console.log("running point 1");
+  await mongoose.connect(
+    "mongodb+srv://Hemant:Hemant@cluster0.yj0i2fk.mongodb.net/LogInjestor?retryWrites=true&w=majority"
+  );
+}
+run();
 const LogSchema = mongoose.model("Logs", logSchema);
 module.exports = LogSchema;
